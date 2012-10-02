@@ -30,7 +30,6 @@ Fitness::Handle DynObjEvalOp::evaluate(GP::Individual& inIndividual, GP::Context
     // błędy
     std::vector<NMSE> error(mOutputs);
 
-    try {
         // iteracja po wszyskich przypadkach uczących (plikach z danymi)
         for(unsigned int i=0; i<mData.size(); i++) {
 
@@ -40,9 +39,9 @@ Fitness::Handle DynObjEvalOp::evaluate(GP::Individual& inIndividual, GP::Context
             // model jest ciagły
             if(mConfig.getContinous()) {
                 // tworzymy model
-                ContinousModelConstStep model(mConfig, inIndividual, data, ioContext);
+                ContinousModel model(mConfig, inIndividual, data, ioContext);
                 // stan początkowy
-                ContinousModelConstStep::StateType x(order+mOutputs, 0);
+                ContinousModel::StateType x(order+mOutputs, 0);
                 // ilość kroków w jednym przypadku
                 unsigned steps = data.size();
                 // czas próbkowania
@@ -50,7 +49,7 @@ Fitness::Handle DynObjEvalOp::evaluate(GP::Individual& inIndividual, GP::Context
                 // czas
                 double t = 0;
                 // stepper
-                runge_kutta4< ContinousModelConstStep::StateType > stepper;
+                runge_kutta4< ContinousModel::StateType > stepper;
                 // całkowanie
                 for(unsigned i=0; i<steps; ++i) {
                     stepper.do_step(model, x, t, ts);
@@ -89,23 +88,6 @@ Fitness::Handle DynObjEvalOp::evaluate(GP::Individual& inIndividual, GP::Context
                 }
             }
         }
-    } catch (ContinousModel::Exception e) {
-/*
-            PACC::Date date; // obecna data
-            switch(e) {
-                case ContinousModel::Unstable:
-                    cout << endl << date.get("%d-%m-%Y %H-%M-%S") << "\t NIESTABILNY";
-                    break;
-                case ContinousModel::TimeExceeded:
-                    cout << endl << date.get("%d-%m-%Y %H-%M-%S") << "\t PRZEKROCZONO CZAS";
-                    break;
-                default:
-                    cout << endl << date.get("%d-%m-%Y %H-%M-%S") << "\t BLAD";
-            }
-*/
-        FitnessNMSE::Handle fitness = FitnessNMSE::unstable(mOutputs);
-        return fitness;
-    }
 
     // funkcja przystosowania
     FitnessNMSE::Handle fitness = new FitnessNMSE(mOutputs);

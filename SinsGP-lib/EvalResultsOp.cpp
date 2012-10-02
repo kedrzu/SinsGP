@@ -33,8 +33,6 @@ Fitness::Handle EvalResultsOp::evaluate(GP::Individual& inIndividual, GP::Contex
     // czy przetwarzane bêd¹ dane ucz¹ce, czy testowe
     Data::Bag& dataSet = mTesting ? mTest : mData;
 
-    try {
-
         // iteracja po wszyskich przypadkach ucz¹cych (plikach z danymi)
         for(unsigned int i=0; i<dataSet.size(); i++) {
 
@@ -45,15 +43,26 @@ Fitness::Handle EvalResultsOp::evaluate(GP::Individual& inIndividual, GP::Contex
             Result result(mConfig, order, data, mResult->getStatus(), mTesting);
 
             // model jest ciag³y
-            if(mConfig.getContinous()) {                
+            if(mConfig.getContinous()) {
                 // tworzymy model
-                ContinousModel model(mConfig, inIndividual, data, ioContext);
+                ContinousLogger model(result, inIndividual, data, ioContext);
                 // stan pocz¹tkowy
-                ContinousModel::StateType xInit(order+mOutputs, 0);
-                ContinousModel::StateType x(order+mOutputs, 0);
-                // tworzymy loger (observer z zapisywaniem wyników)
-                ContinousLogger logger(inIndividual, result, x, ioContext);
-                integrate(model, xInit, (double)0, data.getDuration(), 0.1, logger);
+                ContinousLogger::StateType x(order+mOutputs, 0);
+                // iloœæ kroków w jednym przypadku
+                unsigned steps = data.size();
+                // czas próbkowania
+                double ts = mConfig.getSamplingTime();
+                // czas
+                double t = 0;
+                // stepper
+                runge_kutta4< ContinousModel::StateType > stepper;
+                // ca³kowanie
+                for(unsigned i=0; i<steps; ++i) {
+                    stepper.do_step(model, x, t, ts);
+                    t += ts;
+                    model.nextStep();
+                    result.push_back(model.getResultRow());
+                }
 
                 for(unsigned j=0; j<mOutputs; j++) {
                     error[j].mse += x[j+order];
@@ -74,10 +83,6 @@ Fitness::Handle EvalResultsOp::evaluate(GP::Individual& inIndividual, GP::Contex
             // zapis danych do plików
             result.exec();
         }
-
-    } catch (ContinousModel::Exception e) {
-        return FitnessNMSE::unstable(mOutputs);
-    }
 
     // funkcja przystosowania
     FitnessNMSE::Handle fitness = new FitnessNMSE(mOutputs);

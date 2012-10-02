@@ -9,7 +9,7 @@
 #include "WriteStatsOp.h"
 #include "ResultModel.h"
 #include "ContinousModel.h"
-#include "ContinousModelConstStep.h"
+#include "ContinousModel.h"
 #include "ContinousModelTesting.h"
 #include "ContinousObserver.h"
 #include "ContinousLogger.h"

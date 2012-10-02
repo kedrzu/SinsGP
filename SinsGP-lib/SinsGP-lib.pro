@@ -25,8 +25,7 @@ SOURCES += \
     MilestoneWriteOp.cpp \
     FitnessNMSE.cpp \
     StatsCalcFitnessNMSEOp.cpp \
-    EvalResultsOp.cpp \
-    ContinousModelConstStep.cpp
+    EvalResultsOp.cpp
 
 HEADERS += \
     WriteStatsOp.h \
@@ -52,8 +51,7 @@ HEADERS += \
     MilestoneWriteOp.h \
     FitnessNMSE.h \
     StatsCalcFitnessNMSEOp.h \
-    EvalResultsOp.h \
-    ContinousModelConstStep.h
+    EvalResultsOp.h
 
 #PRECOMPILED_HEADER = stdafx.h
 
