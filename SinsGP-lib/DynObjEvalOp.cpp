@@ -57,23 +57,14 @@ Fitness::Handle DynObjEvalOp::evaluate(GP::Individual& inIndividual, GP::Context
                     model.nextStep();
                 }
 
+                if(model.isZero()) {
+                    return FitnessNMSE::unstable(mOutputs);
+                }
+
                 for(unsigned j=0; j<mOutputs; j++) {
                     error[j].mse += x[j+order];
                     error[j].nmse += x[j+order] / data.getOutStats(j).RMS;
                 }
-
-
-//                // tworzymy model
-//                ContinousModel model(mConfig, inIndividual, data, ioContext);
-//                // stan początkowy
-//                ContinousModel::StateType xInit(order+mOutputs, 0);
-//                ContinousModel::StateType x(order+mOutputs, 0);
-//                integrate(model, xInit, (double)0, data.getDuration(), data[1].t-data[0].t, ContinousObserver(mConfig, x));
-
-//                for(unsigned j=0; j<mOutputs; j++) {
-//                    error[j].mse += x[j+order];
-//                    error[j].nmse += x[j+order] / data.getOutStats(j).RMS;
-//                }
 
             }
             // model jest dyskretny

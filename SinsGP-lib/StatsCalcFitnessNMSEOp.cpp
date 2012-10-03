@@ -149,6 +149,7 @@ void StatsCalcFitnessNMSEOp::calculateStatsDeme(Stats &outStats, Deme &ioDeme, C
     for(unsigned int i=1; i<ioDeme.size(); i++) {
         const FitnessNMSE::Handle indivFitness = castHandleT<FitnessNMSE>(ioDeme[i]->getFitness());
         double tNmse = indivFitness->getNMSE();
+        //cout << endl << i << "\t" << tNmse << "\t" << indivFitness->size();
 
         if(tNmse != tNmse || tNmse == numeric_limits<double>::infinity()) {
             continue;
@@ -161,8 +162,8 @@ void StatsCalcFitnessNMSEOp::calculateStatsDeme(Stats &outStats, Deme &ioDeme, C
         min     =  minOf<double>(min, tNmse);
 
         for(int j=0; j<outputs; ++j) {
-            double nmse = (*indivFitness)[i].nmse;
-            double mse = (*indivFitness)[i].mse;
+            double nmse = (*indivFitness)[j].nmse;
+            double mse = (*indivFitness)[j].mse;
 
             sumNMSE[j] += nmse;
             pow2sumNMSE[j] += pow2Of<double>(nmse);

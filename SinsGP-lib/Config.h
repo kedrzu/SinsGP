@@ -206,7 +206,7 @@ public:
     const Paths& getPaths() const { return mPaths; }
     /*!
      *      \brief Zwraca czas próbkowania
-     *      \return mSamplingTime Czas próbkowania
+     *      \return double mSamplingTime Czas próbkowania
      */
     double getSamplingTime() const { return mSamplingTime; }
 

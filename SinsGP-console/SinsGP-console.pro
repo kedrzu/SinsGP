@@ -11,7 +11,7 @@ HEADERS += \
     stdafx.h
 
 # prekompilowany nag³ówek
-#PRECOMPILED_HEADER = stdafx.h
+PRECOMPILED_HEADER = stdafx.h
 
 # za³¹czanie biblioteki programu SinsGP
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../SinsGP-lib/release/ -lSinsGP-lib -L$$OUT_PWD/../gnuplot++/release/ -lgnuplot++
@@ -39,9 +39,9 @@ else:unix: LIBS += -lboost_filesystem
 win32:CONFIG(release, debug|release): FROM = $$OUT_PWD/release/SinsGP-console.exe
 win32:CONFIG(debug, debug|release): FROM = $$OUT_PWD/debug/SinsGP-console.exe
 win32:FROM ~= s,/,\\,g
-win32:TO = $$OUT_PWD/../../SinsGP.exe
+win32:TO = $$OUT_PWD/../../../SinsGP.exe
 win32:TO ~= s,/,\\,g
 unix: FROM = $$OUT_PWD/console
-unix: TO = $$OUT_PWD/../../SinsGP
+unix: TO = $$OUT_PWD/../../../SinsGP
 win32:CONFIG(release, debug|release): QMAKE_POST_LINK += $$quote(copy $$FROM $$TO)
 else:unix: QMAKE_POST_LINK += $$quote(cp $$FROM $$TO)

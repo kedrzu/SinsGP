@@ -10,7 +10,7 @@ ContinousLogger::ContinousLogger(Config& config, GP::Individual& individual, con
 {
 }
 
-void ContinousLogger::operator ()(const StateType& x, const double t)
+void ContinousLogger::operator ()(const StateType &x, StateType &dxdt, const double t)
 {
 
     // pobranie wiersza danych
@@ -18,9 +18,9 @@ void ContinousLogger::operator ()(const StateType& x, const double t)
 
     // wiersz danych
     mResultRow = ResultRow(mInputs, mOutputs, mOrder);
-    resultRow.t = t;
-    resultRow.u = row.u;
-    resultRow.y = row.y;
+    mResultRow.t = t;
+    mResultRow.u = row.u;
+    mResultRow.y = row.y;
 
     // iteracja po wejsciach
     for(unsigned k=0; k<mInputs; k++) {
@@ -30,15 +30,15 @@ void ContinousLogger::operator ()(const StateType& x, const double t)
     // iteracja po zmiennych stanu do zapisu aktualnego stanu
     for(unsigned k=0; k<mOrder; ++k) {
             mConfig.getStateVar(k)->setValue(Double(x[k]));
-            resultRow.x[k] = x[k];
+            mResultRow.x[k] = x[k];
     }
 
     // iteracja po wyjœciach dla zmiennych obserwowalnych
     for(unsigned k=0; k<mObservables; ++k) {
         double error = row.y[k]-(double)x[mConfig.getObservables(k)];
         dxdt[k+mOrder] = error*error;
-        resultRow.e[k] = error;
-        resultRow.yModel[k] = (double)x[mConfig.getObservables(k)];
+        mResultRow.e[k] = error;
+        mResultRow.yModel[k] = (double)x[mConfig.getObservables(k)];
     }
 
     // iteracja po pozosta³ych wyjœciach
@@ -47,8 +47,8 @@ void ContinousLogger::operator ()(const StateType& x, const double t)
         mIndividual[k]->interpret(result, mContext); // odczyt wyniku obliczeñ dla drzewa
         double error = row.y[k+mObservables]-(double)result;
         dxdt[k+mOrder+mObservables] = error*error;
-        resultRow.e[k] = error;
-        resultRow.yModel[k] = (double)result;
+        mResultRow.e[k] = error;
+        mResultRow.yModel[k] = (double)result;
     }
 
     // iteracja po zmiennych stanu do odczytu pochodnej

@@ -16,7 +16,6 @@ SOURCES += \
     Data.cpp \
     ContinousModel.cpp \
     Config.cpp \
-    ContinousObserver.cpp \
     ContinousLogger.cpp \
     DiscreteLogger.cpp \
     SignedSqrt.cpp \
@@ -25,7 +24,8 @@ SOURCES += \
     MilestoneWriteOp.cpp \
     FitnessNMSE.cpp \
     StatsCalcFitnessNMSEOp.cpp \
-    EvalResultsOp.cpp
+    EvalResultsOp.cpp \
+    Signal.cpp
 
 HEADERS += \
     WriteStatsOp.h \
@@ -42,7 +42,6 @@ HEADERS += \
     Data.h \
     ContinousModel.h \
     Config.h \
-    ContinousObserver.h \
     ContinousLogger.h \
     DiscreteLogger.h \
     SignedSqrt.h \
@@ -51,8 +50,9 @@ HEADERS += \
     MilestoneWriteOp.h \
     FitnessNMSE.h \
     StatsCalcFitnessNMSEOp.h \
-    EvalResultsOp.h
+    EvalResultsOp.h \
+    Signal.h
 
-#PRECOMPILED_HEADER = stdafx.h
+PRECOMPILED_HEADER = stdafx.h
 
 INCLUDEPATH += $$PWD/../gnuplot++

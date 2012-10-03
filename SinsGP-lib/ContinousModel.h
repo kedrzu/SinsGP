@@ -46,8 +46,30 @@ namespace SinsGP {
             w przypadku uczącym (także aproksymowane).
         */
         void operator()(const StateType &x, StateType &dxdt, const double t);
+        /*!
+         \brief Zwiększa licznik kroków algorytmu numerycznego
+
+        */
         void nextStep() { ++mStep; }
+        /*!
+         \brief Zwraca liczbę kroków algorytmu numerycznego
+
+         \return unsigned mStep Liczba kroków
+        */
         unsigned getStep() { return mStep; }
+        /*!
+         \brief Wskazuje czy sygnał wyjściowy jest tożsamościowo równy zero
+
+         \param i Numer sygnału wyjściowego
+         \return bool
+        */
+        bool isZero(unsigned i) const { return mIsZero[i]; }
+        /*!
+         \brief Wskazuje, czy którykolwiek z sygnałów wyjściowych jest tożsamościowo równy zero
+
+         \return bool
+        */
+        bool isZero() const;
 
     protected:
         Config& mConfig; //!< Obiekt konfiguracyjny
@@ -63,6 +85,7 @@ namespace SinsGP {
         unsigned mStateTrees; //!< Liczba drzew opisująca równania stanu
         unsigned mOutTrees; //!< Liczba drzew opisująca równania wyjść
         unsigned mStep; //!< Licznik aktualnego wiersza przypadku uczącego
+        std::vector<bool> mIsZero; //!< Wskazuje, czy sygnał wyjściowy jest tożsamościowo równy zeru
     };
 }
 

@@ -45,7 +45,7 @@ Fitness::Handle EvalResultsOp::evaluate(GP::Individual& inIndividual, GP::Contex
             // model jest ciag³y
             if(mConfig.getContinous()) {
                 // tworzymy model
-                ContinousLogger model(result, inIndividual, data, ioContext);
+                ContinousLogger model(mConfig, inIndividual, data, ioContext);
                 // stan pocz¹tkowy
                 ContinousLogger::StateType x(order+mOutputs, 0);
                 // iloœæ kroków w jednym przypadku
