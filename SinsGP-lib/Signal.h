@@ -3,14 +3,13 @@
 
 #include <vector>
 #include <cmath>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace SinsGP {
 
-template<bool sum=true, bool pow2sum=false, bool stats=false>
 class Signal : protected std::vector<double>
 {
 public:
-    //template<bool sum, bool pow2sum, bool stats>
     Signal()
         : mSum(0), mMean(0), mPow2Sum(0), mRMS(0)
     {
@@ -22,28 +21,20 @@ public:
         this->reserve(size);
     }
 
-    double operator[](unsigned i) const { return (*this)[i]; }
+    double operator[](unsigned i) const { return std::vector<double>::operator[](i); }
 
     double evalMean()
     {
-        if(!sum && !stats) {
-            mSum = 0;
-            for(int i=0; i<this->size(); ++i) {
-                mSum += (*this)[i];
-            }
-        }
         mMean = mSum / this->size();
         return mMean;
     }
 
     double evalRMS()
     {
-        if(!pow2sum && !stats) {
             mPow2Sum = 0;
             for(int i=0; i<this->size(); ++i) {
                 mPow2Sum += (*this)[i]*(*this)[i];
             }
-        }
         mRMS = sqrt(mPow2Sum / this->size());
         return mRMS;
     }
@@ -56,10 +47,8 @@ public:
 
     void push_back(double value)
     {
-        this->push_back(value);
-        if(sum || stats) mSum += value;
-        if(pow2sum || stats) mPow2Sum += value*value;
-        if(stats) evalStats();
+        std::vector<double>::push_back(value);
+        mSum += value;
     }
 
     double getMean() const { return mMean; }
@@ -68,7 +57,7 @@ public:
 
     double getSum() const { return mSum; }
 
-    double correlation(const Signal& secondSignal) {
+    double correlation(const Signal& secondSignal) const {
         double covariance = 0;
         double varianceFirst = 0;
         double varianceSecond = 0;
@@ -79,7 +68,15 @@ public:
             varianceFirst += first*first;
             varianceSecond += second*second;
         }
-        return covariance / (sqrt(varianceFirst)*sqrt(varianceSecond));
+        double corr = covariance / (sqrt(varianceFirst)*sqrt(varianceSecond));
+
+        // je¿eli któryœ sygna³ jest to¿samoœciowo równy 0
+        // w równaniu wyst¹pi dzielenie przez 0 i zwrócona zostanie wartoœæ NaN
+        // nale¿y wówczas zwróciæ korelacjê równ¹ -2
+        // dziêki temu algorytm unikaæ bêdzie modeli z równaniami to¿samoœciowo
+        // równymi zeru
+        if(boost::math::isnan<double>(corr)) return -2;
+        else return corr;
     }
 
 protected:

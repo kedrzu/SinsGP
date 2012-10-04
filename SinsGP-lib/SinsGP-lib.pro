@@ -25,7 +25,8 @@ SOURCES += \
     FitnessNMSE.cpp \
     StatsCalcFitnessNMSEOp.cpp \
     EvalResultsOp.cpp \
-    Signal.cpp
+    Signal.cpp \
+    EphemeralDoubleWide.cpp
 
 HEADERS += \
     WriteStatsOp.h \
@@ -51,7 +52,8 @@ HEADERS += \
     FitnessNMSE.h \
     StatsCalcFitnessNMSEOp.h \
     EvalResultsOp.h \
-    Signal.h
+    Signal.h \
+    EphemeralDoubleWide.h
 
 PRECOMPILED_HEADER = stdafx.h
 

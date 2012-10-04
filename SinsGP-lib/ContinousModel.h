@@ -46,36 +46,15 @@ namespace SinsGP {
             w przypadku uczącym (także aproksymowane).
         */
         void operator()(const StateType &x, StateType &dxdt, const double t);
-        /*!
-         \brief Zwiększa licznik kroków algorytmu numerycznego
 
-        */
-        void nextStep() { ++mStep; }
-        /*!
-         \brief Zwraca liczbę kroków algorytmu numerycznego
-
-         \return unsigned mStep Liczba kroków
-        */
-        unsigned getStep() { return mStep; }
-        /*!
-         \brief Wskazuje czy sygnał wyjściowy jest tożsamościowo równy zero
-
-         \param i Numer sygnału wyjściowego
-         \return bool
-        */
-        bool isZero(unsigned i) const { return mIsZero[i]; }
-        /*!
-         \brief Wskazuje, czy którykolwiek z sygnałów wyjściowych jest tożsamościowo równy zero
-
-         \return bool
-        */
-        bool isZero() const;
+        void setInputs(unsigned step);
+        std::vector<double> getOutput(StateType &x);
 
     protected:
         Config& mConfig; //!< Obiekt konfiguracyjny
+        Beagle::GP::Individual& mIndividual; //!< Przetwarzany model
         const Data& mData; //!< Przetwarzany przypadek uczący
         Beagle::GP::Context& mContext; //!< Obiekt reprezentujący aktualny stan procesu uczenia
-        Beagle::GP::Individual& mIndividual; //!< Przetwarzany model
         unsigned mInputs; //!< Liczba wejść modelu
         unsigned mOutputs; //!< Liczba wyjść modelu
         unsigned mOrder; //!< Rząd modelu
@@ -84,10 +63,10 @@ namespace SinsGP {
         unsigned mDerivatives; //!< Liczba równań stanu będących pochodnymi
         unsigned mStateTrees; //!< Liczba drzew opisująca równania stanu
         unsigned mOutTrees; //!< Liczba drzew opisująca równania wyjść
-        unsigned mStep; //!< Licznik aktualnego wiersza przypadku uczącego
-        std::vector<bool> mIsZero; //!< Wskazuje, czy sygnał wyjściowy jest tożsamościowo równy zeru
     };
 }
+
+
 
 
 #endif // SINSGP_ContinousModel_H

@@ -20,3 +20,4 @@
 #include "FitnessNMSE.h"
 #include "EvalResultsOp.h"
 #include "StatsCalcFitnessNMSEOp.h"
+#include "EphemeralDoubleWide.h"

@@ -158,12 +158,12 @@ public:
      *  \brief Zwraca minimalny rząd modelu
      *  \return Config::mMinOrder Minimalny rząd modelu
      */
-    int getMinOrder() const { return mMinOrder; }
+    unsigned getMinOrder() const { return mMinOrder; }
     /*!
             \brief Zwraca maksymalny rząd modelu
             \return Config::mMaxOrder Maksymalny rząd modelu
     */
-    int getMaxOrder() const { return mMaxOrder; }
+    unsigned getMaxOrder() const { return mMaxOrder; }
     /*!
             \brief Zwraca konfigurację plików wynikowych modelu
             \return Config::mResIndModel Flagi bitowe zawierające Config::Result
@@ -188,7 +188,7 @@ public:
             \brief Zwraca liczbę uruchomień optymalizacji
             \return Config::mRuns
     */
-    int getRuns() const { return mRuns; }
+    unsigned getRuns() const { return mRuns; }
     /*!
             \brief Określa, czy szukany model jest ciągły
             \return Config::mContinous
@@ -229,7 +229,7 @@ private:
     int mResIndData; //!< Wynikowa reprezentacja jakości uczenia w postaci flag bitów
     int mResIndTest; //!< Wynikowa reprezentacja jakości uczenia w postaci flag bitów
     int mResStats; //!< Wynikowa reprezentacja statystyk uczenia
-    int mRuns; //!< Liczba uruchomień optymalizacji genetycznej
+    unsigned mRuns; //!< Liczba uruchomień optymalizacji genetycznej
     double mSamplingTime; //!< Czas próbkowania danych
 
     // FUNCTIONS

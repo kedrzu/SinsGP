@@ -13,7 +13,7 @@ void SignedSqrt::execute(GP::Datum& outResult,GP::Context& ioContext) {
     Double arg;
     get1stArgument(arg,ioContext);
     Double& result = castObjectT<Double&>(outResult);
-    if(arg > 0) {
+    if(arg > (double)0) {
         result = sqrt(arg);
     } else {
         result = -sqrt(-arg);

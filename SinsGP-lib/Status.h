@@ -6,8 +6,8 @@ class Status
 {
 public:
     Status();
-    int getRun() { return mRun; }
-    int getModel() { return mModel; }
+    unsigned getRun() { return mRun; }
+    unsigned getModel() { return mModel; }
     boost::filesystem::path getRunPath() { return mRunPath; }
     boost::filesystem::path getModelPath() { return mModelPath; }
     int nextRun() {
@@ -16,7 +16,7 @@ public:
         updatePaths();
         return mRun;
     }
-    int nextModel() {
+    unsigned nextModel() {
         ++mModel;
         updatePaths();
         return mModel;

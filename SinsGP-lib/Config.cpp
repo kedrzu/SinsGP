@@ -9,7 +9,10 @@ using namespace std;
 using namespace boost::filesystem;
 using namespace Beagle;
 
-Config::Config(int /* argc */, char *argv[]) : mException(""), mError(false), mContinous(false)
+Config::Config(int /* argc */, char *argv[]) :
+    mException(""),
+    mError(false),
+    mContinous(false)
 {
     mPaths.config = path(argv[1]);
     mPaths.program = path(argv[0]).parent_path();

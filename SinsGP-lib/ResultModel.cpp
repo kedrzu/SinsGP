@@ -13,7 +13,7 @@ ResultModel::ResultModel(Config* config, GP::Individual::Handle indi, Status& st
     : mConfig(config), mIndi(indi), mStatus(&status)
 {
 	// odczyt rzêdu modelu osobnika
-    int order = mIndi->size() + mConfig->getDerivatives().size() + mConfig->getObservables().size() - mConfig->getOutputs().size();;
+    unsigned order = mIndi->size() + mConfig->getDerivatives().size() + mConfig->getObservables().size() - mConfig->getOutputs().size();;
 
 	// czy osobnik ma odpowiedni¹ liczbê drzew
 	if(order > mConfig->getMaxOrder() || order < mConfig->getMinOrder()) {

@@ -8,8 +8,9 @@ using namespace boost::filesystem;
 using namespace gnuplotpp::detail;
 
 Result::Result(Config& config, int order, Data& data, Status &status, bool test)
-    : mConfig(config), mOrder(order), mData(data), mStatus(&status),
-     mTest(test), mDataFile(data.getFile().filename())
+    : mConfig(config), mDataFile(data.getFile().filename()), mData(data), mTest(test),
+      mOrder(order), mStatus(&status)
+
 {
 }
 

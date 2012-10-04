@@ -18,7 +18,7 @@ FitnessNMSE::FitnessNMSE()
 void FitnessNMSE::evaluate() {
     Beagle_StackTraceBeginM();
     double err = 0;
-    for(int i=0; i<this->size(); ++i) {
+    for(unsigned i=0; i<this->size(); ++i) {
         err += (*this)[i].nmse;
     }
     mNMSE = err / this->size();
@@ -29,7 +29,7 @@ void FitnessNMSE::evaluate() {
 FitnessNMSE::Handle FitnessNMSE::unstable(unsigned outputs) {
     Beagle_StackTraceBeginM();
     FitnessNMSE::Handle fitness = new FitnessNMSE(outputs);
-    for(int i=0; i<fitness->size(); ++i) {
+    for(unsigned i=0; i<fitness->size(); ++i) {
         (*fitness)[i].nmse = std::numeric_limits<double>::infinity();
         (*fitness)[i].mse = std::numeric_limits<double>::infinity();
     }
@@ -71,7 +71,7 @@ void FitnessNMSE::write(PACC::XML::Streamer& ioStreamer, bool inIndent) const
     Beagle_StackTraceBeginM();
     ioStreamer.openTag("Fitness", inIndent);
     ioStreamer.insertAttribute("NMSE", dbl2str(mNMSE));
-    for(int i=0; i<size(); ++i) {
+    for(unsigned i=0; i<size(); ++i) {
         ioStreamer.openTag("y" + int2str(i), inIndent);
         ioStreamer.insertAttribute("NMSE", dbl2str((*this)[i].nmse));
         ioStreamer.insertAttribute("MSE", dbl2str((*this)[i].mse));

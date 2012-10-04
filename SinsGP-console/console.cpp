@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
         set->insert(new GP::Log); // logarytm naturalny (bezpieczny)
         set->insert(new SinsGP::SignedSqrt); // bezpieczny pierwiastek kwadratowy
         set->insert(new GP::EphemeralDouble); // sta³a liczbowa
+        set->insert(new EphemeralDoubleWide); // sta³a liczbowa
 
         // status procesu optymalizacji
         SinsGP::Status status;
@@ -146,7 +147,8 @@ int main(int argc, char *argv[]) {
             // evolver
             SinsGP::Evolver::Handle evolver = new SinsGP::Evolver(evalOp, &config, status);
             // operator do obliczania statystyk uczenia
-            StatsCalcFitnessNMSEOp::Handle statsCalc = new StatsCalcFitnessNMSEOp(config, "StatsCalcFitnessOp");
+            //StatsCalcFitnessNMSEOp::Handle statsCalc = new StatsCalcFitnessNMSEOp(config, "StatsCalcFitnessOp");
+            StatsCalcFitnessSimpleOp::Handle statsCalc = new StatsCalcFitnessSimpleOp("StatsCalcFitnessOp");
             evolver->addOperator(statsCalc);
             // obiekt do zapisu wynikw statystycznych w trakcie uczenia
             WriteStatsOp::Handle statsOp = new WriteStatsOp(&config);
@@ -165,14 +167,14 @@ int main(int argc, char *argv[]) {
                 }
             }
             // Konfiguracja listy zmiennych stanu
-            for(int i=0; i<config.getMaxOrder(); i++) {
+            for(unsigned i=0; i<config.getMaxOrder(); i++) {
                 for(unsigned j=0; j<gpSystem->getPrimitiveSuperSet().size(); j++) {
                     gpSystem->getPrimitiveSuperSet().getPrimitSetBag()[j]->insert(config.getStateVar(i));
                 }
             }
 
             // vivarium
-            GP::Vivarium::Handle vivarium = new GP::Vivarium(new GP::Tree::Alloc, new FitnessNMSE::Alloc);
+            GP::Vivarium::Handle vivarium = new GP::Vivarium(new GP::Tree::Alloc, new FitnessSimple::Alloc);
 
             // uruchomienie optymalizacji genetycznej
             evolver->evolve(vivarium);
