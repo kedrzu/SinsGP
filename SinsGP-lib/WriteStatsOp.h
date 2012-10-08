@@ -1,8 +1,10 @@
 ﻿#pragma once
 
 #include <map>
-#include "boost/array.hpp"
+#include <boost/array.hpp>
 #include "Status.h"
+#include "Config.h"
+#include <vector>
 
 namespace SinsGP {
 	//! Klasa reprezentuje operator Open Beagle służący do bieżącej oceny procesu uczenia

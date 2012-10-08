@@ -77,7 +77,6 @@ namespace SinsGP {
                  mOutputs, //!< Liczba zmiennych wyjœciowych modelu.
                  mMaxOrder; //!< Maksymalny rz¹d obiektu.
 
-        bool mTesting; //!< Okreœla, czy w liczeniu funkcji przystosowania u¿ywane maj¹ byæ dane testowe
         ResultModel* mResult; //!< Obiekt do zapisu wyników uczenia
         Stats* mStats; //!< Log do zapisu statystycznych wyników uczenia
     };

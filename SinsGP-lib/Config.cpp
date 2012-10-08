@@ -2,7 +2,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp> // replacing
 #include <iostream>
-#include "SinsGP.h"
+#include "Config.h"
 
 using namespace SinsGP;
 using namespace std;
@@ -10,9 +10,9 @@ using namespace boost::filesystem;
 using namespace Beagle;
 
 Config::Config(int /* argc */, char *argv[]) :
-    mException(""),
+    mContinous(false),
     mError(false),
-    mContinous(false)
+    mException("")
 {
     mPaths.config = path(argv[1]);
     mPaths.program = path(argv[0]).parent_path();

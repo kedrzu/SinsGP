@@ -1,5 +1,8 @@
 #include "stdafx.h"
-#include "SinsGP.h"
+#include "EvalResultsOp.h"
+#include "FitnessCorelation.h"
+#include "ContinousModel.h"
+#include "Result.h"
 #include <boost/numeric/odeint.hpp>
 
 using namespace std;
@@ -11,7 +14,7 @@ using namespace boost::numeric::odeint;
 EvalResultsOp::EvalResultsOp(Config& config, Data::Bag data, Data::Bag test, SinsGP::Stats* stats) :
     GP::EvaluationOp("DynObjEvalOp"), mConfig(config), mData(data), mTest(test),
     mInputs(config.getInputs().size()), mOutputs(config.getOutputs().size()),
-    mMaxOrder(config.getMaxOrder()), mTesting(false), mStats(stats)
+    mMaxOrder(config.getMaxOrder()), mStats(stats)
 {
 }
 
@@ -21,30 +24,47 @@ EvalResultsOp::~EvalResultsOp(void)
 
 
 // Funkcja przystosowania
-Fitness::Handle EvalResultsOp::evaluate(GP::Individual& inIndividual, GP::Context& ioContext)
+Beagle::Fitness::Handle EvalResultsOp::evaluate(GP::Individual& inIndividual, GP::Context& ioContext)
 {
 
     // odczyt rzêdu modelu osobnika
-    unsigned order = inIndividual.size() + mConfig.getDerivatives().size() + mConfig.getObservables().size() - mOutputs;
-    // czas wszystkich przypadków danych
-    unsigned time = 0;
-    // b³êdy
-    //std::vector<NMSE> error(mOutputs);
-    double correlation = 0;
+    int order = inIndividual.size() + mConfig.getDerivatives().size() + mConfig.getObservables().size() - mOutputs;
 
-    // czy przetwarzane bêd¹ dane ucz¹ce, czy testowe
-    Data::Bag& dataSet = mTesting ? mTest : mData;
+    // funkcja przystosowania
+    FitnessCorelation::Handle fitnessData = new FitnessCorelation(mOutputs);
+    FitnessCorelation::Handle fitnessTest = new FitnessCorelation(mOutputs);
+    // wyniki
+    Result::Bag resultsData;
+    Result::Bag resultsTest;
+    // dane do liczenia œredniego odchylenia standardowego sygna³ów
+    vector<double> stdErrData(mOutputs);
+    vector<double> stdErrTest(mOutputs);
+    // liczba wierszy do liczenia œrednich
+    double rowsData = 0;
+    double rowsTest = 0;
 
+    bool test = false;
+    for(int k=0; k<2; ++k) {
+        // czy przetwarzane bêd¹ dane ucz¹ce, czy testowe
+        Data::Bag& dataSet = test ? mTest : mData;
+        Result::Bag& results = test ? resultsTest : resultsData;
+        FitnessCorelation::Handle fitness = test ? fitnessTest : fitnessData;
+        vector<double>& stdErr = test ? stdErrTest : stdErrData;
+        double& rows = test ? rowsTest : rowsData;
         // iteracja po wszyskich przypadkach ucz¹cych (plikach z danymi)
-        for(unsigned int i=0; i<dataSet.size(); i++) {
-
-        Data& data = *dataSet[i];
-
-        // obiekt do zapisu danych uczenia
-        Result result(mConfig, order, data, mResult->getStatus(), mTesting);
-
-        // model jest ciag³y
-        if(mConfig.getContinous()) {
+        for(unsigned int i=0; i<dataSet.size(); ++i) {
+            // przetwarzane dane
+            Data& data = *dataSet[i];
+            // liczba wierszy
+            rows += data.getRows();
+            // odchylenie standardowe
+            for(unsigned j=0; j<mOutputs; ++j) {
+                stdErr[j] += data.getOutputs(j).getStats().stdErr*data.getRows();
+            }
+            // obiekt do zapisu danych uczenia
+            results.push_back(new Result(mConfig, order, data, mResult->getStatus(), test));
+            // ustawiamy dane
+            fitness->setData(data);
             // tworzymy model
             ContinousModel model(mConfig, inIndividual, data, ioContext);
             // stan pocz¹tkowy
@@ -55,162 +75,54 @@ Fitness::Handle EvalResultsOp::evaluate(GP::Individual& inIndividual, GP::Contex
             double ts = mConfig.getSamplingTime();
             // czas
             double t = 0;
-            // zapis sygna³ów wyjœciowych
-            vector<Signal> outputs(mOutputs);
-            for(unsigned i=0; i<mOutputs; ++i) {
-                outputs[i] = Signal(steps);
-            }
             // stepper
             runge_kutta4< ContinousModel::StateType > stepper;
-            // ca³kowanie
+            // wykonanie symulacji
             for(unsigned j=0; j<steps; ++j) {
-                // zapis do wyników
-                ResultRow row(mConfig.getInputs().size(), mOutputs, order);
-                row.t = t;
-                for(unsigned k=0; k<mConfig.getInputs().size(); ++k)
-                    row.u[k] = data.getInputs(k)[j];
-                for(unsigned k=0; k<order; ++k)
-                    row.x[k] = x[k];
-
+                // ustawiamy zmienne wejœciowe
                 model.setInputs(j);
+                // zapisujemy wyjœcia do funkcji przystosowania i wyniku
                 vector<double> out = model.getOutput(x);
-                // zapis sygna³ów wyjœciowych
-                for(unsigned k=0; k<mOutputs; ++k) {
-                    outputs[k].push_back(out[k]);
-                    row.y[k] = data.getOutputs(k)[j];
-                    row.yModel[k] = out[k];
-                }
-
+                fitness->add(out);
+                results[i]->add(x, out);
+                // wykonujemy krok algorytmu numerycznego
                 stepper.do_step(model, x, t, ts);
-
-                result.push_back(row);
-
-                // nastêpny krok
+                // inkrementujemy czas
                 t += ts;
             }
-
-            time += steps;
-            for(unsigned j=0; j<mOutputs; ++j) {
-                outputs[j].evalMean();
-                correlation += data.getOutputs(j).correlation(outputs[j])*steps;
-            }
-
-//            if(model.isZero()) {
-//                return FitnessNMSE::unstable(mOutputs);
-//            }
-
-//            for(unsigned j=0; j<mOutputs; j++) {
-//                error[j].mse += x[j+order];
-//                error[j].nmse += x[j+order] / data.getOutStats(j).RMS;
-//            }
-
+            // zatwierdzamy przypadek ucz¹cy
+            fitness->commitData();
+            // obliczamy statystyki
+            results[i]->evalStats();
         }
-        result.exec();
+        // wykonujemy koñcowe obliczenia funkcji przystosowania
+        fitness->evaluate();
+        // po przerobieniu danych ucz¹cych przetwarzamy testowe
+        test = true;
     }
 
-    // funkcja przystosowania
-//    FitnessNMSE::Handle fitness = new FitnessNMSE(mOutputs);
-
-//    // uœrednienie b³êdu po czasie
-//    for(int i=0; i<mOutputs; ++i) {
-//        (*fitness)[i].mse = error[i].mse / time;
-//        (*fitness)[i].nmse = error[i].nmse / time;
-//    }
-//    fitness->evaluate();
-//    return fitness;
-
-    return new FitnessSimple(correlation/time);
-
-//    // odczyt rzêdu modelu osobnika
-//    int order = inIndividual.size() + mConfig.getDerivatives().size() + mConfig.getObservables().size() - mOutputs;
-//    // czas wszystkich przypadków danych
-//    double time = 0;
-//    // b³êdy
-//    std::vector<NMSE> error(mOutputs);
-
-//    // czy przetwarzane bêd¹ dane ucz¹ce, czy testowe
-//    Data::Bag& dataSet = mTesting ? mTest : mData;
-
-//        // iteracja po wszyskich przypadkach ucz¹cych (plikach z danymi)
-//        for(unsigned int i=0; i<dataSet.size(); i++) {
-
-//            Data& data = *dataSet[i];
-//            time += data.getDuration();
-
-//            // obiekt do zapisu danych uczenia
-//            Result result(mConfig, order, data, mResult->getStatus(), mTesting);
-
-//            // model jest ciag³y
-//            if(mConfig.getContinous()) {
-//                // tworzymy model
-//                ContinousLogger model(mConfig, inIndividual, data, ioContext);
-//                // stan pocz¹tkowy
-//                ContinousLogger::StateType x(order+mOutputs, 0);
-//                // iloœæ kroków w jednym przypadku
-//                unsigned steps = data.size();
-//                // czas próbkowania
-//                double ts = mConfig.getSamplingTime();
-//                // czas
-//                double t = 0;
-//                // stepper
-//                runge_kutta4< ContinousModel::StateType > stepper;
-//                // ca³kowanie
-//                for(unsigned i=0; i<steps; ++i) {
-//                    stepper.do_step(model, x, t, ts);
-//                    t += ts;
-//                    model.nextStep();
-//                    result.push_back(model.getResultRow());
-//                }
-
-//                for(unsigned j=0; j<mOutputs; j++) {
-//                    error[j].mse += x[j+order];
-//                    error[j].nmse += x[j+order] / data.getOutStats(j).RMS;
-//                }
-//            }
-//            // model jest dyskretny
-//            else {
-//                // tworzymy logger (model z zapisywaniem wyników)
-//                DiscreteLogger logger(inIndividual, result, ioContext);
-
-//                vector<double> e = logger.integrate();
-//                for(unsigned j=0; j<mOutputs; j++) {
-//                    error[j].mse += e[j];
-//                    error[j].nmse += e[j] / data.getOutStats(j).RMS;
-//                }
-//            }
-//            // zapis danych do plików
-//            result.exec();
-//        }
-
-//    // funkcja przystosowania
-//    FitnessNMSE::Handle fitness = new FitnessNMSE(mOutputs);
-
-//    // uœrednienie b³êdu po czasie
-//    for(unsigned i=0; i<mOutputs; ++i) {
-//        (*fitness)[i].mse = error[i].mse / time;
-//        (*fitness)[i].nmse = error[i].nmse / time;
-//    }
-//    fitness->evaluate();
-
-//    return fitness;
-
+    // wykonujemy normalizacjê za pomoc¹ œredniego odchylenia standardowego dla danych ucz¹cych
+    for(unsigned i=0; i<mOutputs; ++i) {
+        double stdError = stdErrData[i]/rowsData*fitnessData->getSign(i);
+        for(unsigned j=0; j<mData.size(); ++j) {
+            resultsData[j]->normalize(i, stdError);
+        }
+        for(unsigned j=0; j<mTest.size(); ++j) {
+            resultsTest[j]->normalize(i, stdError);
+        }
+    }
+    // zapisujemy dane
+    for(unsigned j=0; j<mData.size(); ++j) {
+        resultsData[j]->exec();
+    }
+    for(unsigned j=0; j<mTest.size(); ++j) {
+        resultsTest[j]->exec();
+    }
+    return fitnessData;
 }
 
 void EvalResultsOp::logResults(ResultModel& result, Beagle::GP::System::Handle ioSystem)
 {
     mResult = &result;
-    SinsGP::Stats::Row row;
-    row.run = result.getStatus().getRun();
-    row.model = result.getStatus().getModel();
-    //FitnessNMSE::Handle fitness;
-    mTesting = false;
     test(result.getIndividual(), ioSystem);
-    //fitness = castHandleT<FitnessNMSE>(test(result.getIndividual(), ioSystem));
-    //row.training = *fitness;
-    mTesting = true;
-    test(result.getIndividual(), ioSystem);
-    //fitness = castHandleT<FitnessNMSE>(test(result.getIndividual(), ioSystem));
-    //row.testing = *fitness;
-    mTesting = false;
-    //mStats->addRow(row);
 }

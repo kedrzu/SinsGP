@@ -1,81 +1,91 @@
 ﻿#include "stdafx.h"
-#include "SinsGP.h"
+#include "Stats.h"
 
 using namespace SinsGP;
 using namespace boost::filesystem;
 
-Stats::Stats(Config* config) : mConfig(config)
+Stats::Row::Row(unsigned par, unsigned sig)
+    : par(par, 0),
+      sig(sig)
 {
-		mCsvPath = mConfig->getPaths().run / path("result-stats.csv");
-        mCsv = new std::ofstream(mCsvPath.string().c_str());
-
-		if(!mCsv->good())
-			throw std::runtime_error("SinsGP::Stats::Stats() Nie udalo sie otworzyc do zapisu pliku " + mCsvPath.string());
-
-		// NAGŁÓWKI
-        *mCsv << "Run" << "\t" << "Model"; // numer runu osobnika
-		
-		// nagłowki - dane uczące
-        *mCsv
-            << "\t" << "overall NMSE (training)"; // średniokwadratowy błąd znormalizowany
-
-		// nagłówki - zmienne wyjściowe
-		for(unsigned i=0; i<mConfig->getOutputs().size(); i++) {
-			*mCsv 
-                << "\t" << mConfig->getOutputs()[i] << " NMSE (training)"
-                << "\t" << mConfig->getOutputs()[i] << " MSE (training)";
-		}	
-
-		// nagłówki - dane testowe
-        *mCsv
-            << "\t" << "overall NMSE (testing)"; // średniokwadratowy błąd znormalizowany
-
-		// nagłówki - zmienne wyjściowe
-		for(unsigned i=0; i<mConfig->getOutputs().size(); i++) {
-			*mCsv 
-                << "\t" << mConfig->getOutputs()[i] << " NMSE (testing)"
-                << "\t" << mConfig->getOutputs()[i] << " MSE (testing)";
-		}
 }
 
-Stats::~Stats(void)
+Stats::Stats(boost::filesystem::path path, unsigned par, unsigned sig)
+    : mPar(par),
+      mSig(sig),
+      mParHeaders(par),
+      mSigHeaders(sig),
+      mCsvPath(path)
 {
-	mCsv->close();
-	delete mCsv;
+    Beagle_StackTraceBeginM();
+    mCsv = new std::ofstream(mCsvPath.string().c_str());
+    if(!mCsv->good())
+        throw std::runtime_error("SinsGP::Stats::Stats() Nie udalo sie otworzyc do zapisu pliku " + mCsvPath.string());
+    Beagle_StackTraceEndM("SinsGP::Stats::Stats(boost::filesystem::path path, unsigned par, unsigned sig)");
+}
+
+Stats::~Stats()
+{
+    Beagle_StackTraceBeginM();
+    mCsv->close();
+    delete mCsv;
+    Beagle_StackTraceEndM("SinsGP::Stats::~Stats()");
+}
+
+void Stats::setParamHeader(unsigned i, std::string header) {
+    Beagle_StackTraceBeginM();
+    Beagle_AssertM(i < mPar);
+    mParHeaders[i] = header;
+    Beagle_StackTraceEndM("void SinsGP::Stats::setParamHeader(unsigned i, std::string header)");
+}
+
+void Stats::setSignalHeader(unsigned i, std::string header) {
+    Beagle_StackTraceBeginM();
+    Beagle_AssertM(i < mSig);
+    mSigHeaders[i] = header;
+    Beagle_StackTraceEndM("void SinsGP::Stats::setSignalHeader(unsigned i, std::string header)");
+}
+
+void Stats::addHeaders() {
+    Beagle_StackTraceBeginM();
+    bool tab = false;
+    for(unsigned i=0; i<mPar; ++i) {
+        if(tab) *mCsv << "\t";
+        else tab = true;
+        *mCsv << mParHeaders[i];
+    }
+    for(unsigned i=0; i<mSig; ++i) {
+        if(tab) *mCsv << "\t";
+        else tab = true;
+        *mCsv << mSigHeaders[i] << " [mean]";
+        *mCsv << mSigHeaders[i] << " [RMS]";
+        *mCsv << mSigHeaders[i] << " [stdError]";
+    }
+    *mCsv << std::endl;
+    Beagle_StackTraceEndM("void SinsGP::Stats::addHeaders()");
 }
 
 void Stats::addRow(const Row& row) {
-	// sprawdzanie poprawności danych
-    if(row.training.size() != mConfig->getOutputs().size())
-        throw std::runtime_error("SinsGP::Stats::addRow() Zla liczba zmiennych w wynikach uczenia. Powinno byc "+ Beagle::int2str(mConfig->getOutputs().size()) + ", jest " + Beagle::int2str(row.training.size()));
-    if(row.testing.size() != mConfig->getOutputs().size())
-        throw std::runtime_error("SinsGP::Stats::addRow() Zla liczba zmiennych w wynikach testu. Powinno byc "+ Beagle::int2str(mConfig->getOutputs().size()) + ", jest " + Beagle::int2str(row.testing.size()));
-		
-	// nowa linijka
-	*mCsv << std::endl;
-	
-	// DANE
-    *mCsv << row.run << "\t" << row.model; // numer runu i osobnika
-	
-	// dane uczące
-	*mCsv 
-        << "\t" << row.training.getNMSE();
+    Beagle_StackTraceBeginM();
+    Beagle_AssertM(row.par.size() == mPar);
+    Beagle_AssertM(row.sig.size() == mSig);
 
-	// zmienne wyjściowe
-	for(unsigned i=0; i<mConfig->getOutputs().size(); i++) {
-		*mCsv 
-                << "\t" << row.training[i].nmse
-                << "\t" << row.training[i].mse;
-	}	
 
-	// dane testowe
-	*mCsv 
-        << "\t" << row.testing.getNMSE();
+    bool tab = false;
+    for(unsigned i=0; i<mPar; ++i) {
+        if(tab) *mCsv << "\t";
+        else tab = true;
+        *mCsv << row.par[i];
+    }
+    for(unsigned i=0; i<mSig; ++i) {
+        if(tab) *mCsv << "\t";
+        else tab = true;
+        *mCsv << row.sig[i].mean;
+        *mCsv << row.sig[i].rms;
+        *mCsv << row.sig[i].stdErr;
+    }
 
-	// zmienne wyjściowe
-	for(unsigned i=0; i<mConfig->getOutputs().size(); i++) {
-        *mCsv
-                << "\t" << row.testing[i].nmse
-                << "\t" << row.testing[i].mse;
-	}	
+    // nowa linijka
+    *mCsv << std::endl;
+    Beagle_StackTraceEndM("void SinsGP::Stats::addRow(const Row& row)");
 }

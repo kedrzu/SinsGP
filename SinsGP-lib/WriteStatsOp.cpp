@@ -1,8 +1,6 @@
 #include "stdafx.h"
-
 #include <fstream>
-
-#include "SinsGP.h"
+#include "WriteStatsOp.h"
 
 using namespace SinsGP;
 using namespace Beagle;

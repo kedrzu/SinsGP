@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
         //doPause();
 
         // Obiekt do zapisu statystycznych wynikw
-        SinsGP::Stats* stats = new SinsGP::Stats(&config);
+        SinsGP::Stats* stats = new SinsGP::Stats(config.getPaths().run / path("result-stats.csv"), 1, 1);
 
         /////////////////////////////////////////////////////////////////////////////////////
         // KONFIGURACJA ALGORYTMU GENETYCZNEGO
@@ -148,8 +148,8 @@ int main(int argc, char *argv[]) {
             SinsGP::Evolver::Handle evolver = new SinsGP::Evolver(evalOp, &config, status);
             // operator do obliczania statystyk uczenia
             //StatsCalcFitnessNMSEOp::Handle statsCalc = new StatsCalcFitnessNMSEOp(config, "StatsCalcFitnessOp");
-            StatsCalcFitnessSimpleOp::Handle statsCalc = new StatsCalcFitnessSimpleOp("StatsCalcFitnessOp");
-            evolver->addOperator(statsCalc);
+            //StatsCalcFitnessSimpleOp::Handle statsCalc = new StatsCalcFitnessSimpleOp("StatsCalcFitnessOp");
+            //evolver->addOperator(statsCalc);
             // obiekt do zapisu wynikw statystycznych w trakcie uczenia
             WriteStatsOp::Handle statsOp = new WriteStatsOp(&config);
             evolver->addOperator(statsOp);
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
             }
 
             // vivarium
-            GP::Vivarium::Handle vivarium = new GP::Vivarium(new GP::Tree::Alloc, new FitnessSimple::Alloc);
+            GP::Vivarium::Handle vivarium = new GP::Vivarium(new GP::Tree::Alloc, new FitnessCorelation::Alloc);
 
             // uruchomienie optymalizacji genetycznej
             evolver->evolve(vivarium);

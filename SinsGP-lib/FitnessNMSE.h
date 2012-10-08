@@ -1,7 +1,7 @@
-#ifndef FITNESSNMSE_H
-#define FITNESSNMSE_H
+#ifndef SINSGP_FITNESSNMSE_H
+#define SINSGP_FITNESSNMSE_H
 
-#include <utility>
+#include "Fitness.h"
 
 namespace SinsGP {
 
@@ -11,13 +11,13 @@ struct NMSE {
     NMSE() : mse(0), nmse(0) {}
 };
 
-class FitnessNMSE : public Beagle::Fitness, public std::vector<NMSE>
+class FitnessNMSE : public Fitness<NMSE>
 {
 public:
 
-    typedef Beagle::AllocatorT<FitnessNMSE,Fitness::Alloc> Alloc;
-    typedef Beagle::PointerT<FitnessNMSE,Fitness::Handle> Handle;
-    typedef Beagle::ContainerT<FitnessNMSE,Fitness::Bag> Bag;
+    typedef Beagle::AllocatorT<FitnessNMSE,SinsGP::Fitness<NMSE>::Alloc> Alloc;
+    typedef Beagle::PointerT<FitnessNMSE,SinsGP::Fitness<NMSE>::Handle> Handle;
+    typedef Beagle::ContainerT<FitnessNMSE,SinsGP::Fitness<NMSE>::Bag> Bag;
 
     FitnessNMSE();
     explicit FitnessNMSE(unsigned outputs);
@@ -28,11 +28,17 @@ public:
     virtual void write(PACC::XML::Streamer& ioStreamer, bool inIndent=true) const;
 
     double getNMSE() const { return mNMSE; }
-    void evaluate();
-    static FitnessNMSE::Handle unstable(unsigned outputs);
+    virtual void add(std::vector<double> output);
+    virtual void commitData();
+    virtual void evaluate();
 
 protected:
     double mNMSE;
+    std::vector<double> mPow2SumBuffer;
+    std::vector<double> mPow2Sum;
+    std::vector<double> mPow2SumNorm;
+    unsigned mStep;
+    unsigned mTime;
 };
 }
-#endif // FITNESSNMSE_H
+#endif // SINSGP_FITNESSNMSE_H

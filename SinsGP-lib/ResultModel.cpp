@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include <sstream>
 #include <fstream>
-#include "SinsGP.h"
+#include "ResultModel.h"
+#include "FitnessCorelation.h"
 
 using namespace SinsGP;
 using namespace Beagle;
@@ -68,6 +69,9 @@ void ResultModel::exec() {
         ofs << endl;
 	}
     ofs << outEquations;
+
+    FitnessCorelation::Handle fitness = castHandleT<FitnessCorelation>(mIndi->getFitness());
+    ofs << endl << "corelation = " << fitness->getCorelation();
 
 	ofs.close();
 
@@ -138,16 +142,20 @@ std::string ResultModel::flattenXML(PACC::XML::Node* node) {
 		Node* child = node->getFirstChild();
 		return "log(" + flattenXML(child) + ")";
     }
-    // bezpieczny pierwiastek
+    // pierwiastek ze znakiem
     else if(name == "SSQRT") {
         Node* child = node->getFirstChild();
         std::string flattened = flattenXML(child);
         return "sqrt(abs(" + flattened + "))*sign(" + flattened + ")";
     }
-	// sta³a
-	else if(name == "E") {
-		return node->getAttribute("value");
-	}
+    // sta³a
+    else if(name == "E") {
+        return node->getAttribute("value");
+    }
+    // sta³a
+    else if(name == "EW") {
+        return node->getAttribute("value");
+    }
 	// zmienna
 	else if(node->getChildCount() == 0) {
 		return node->getValue();

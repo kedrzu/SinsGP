@@ -4,7 +4,7 @@
 #include <boost/algorithm/string/replace.hpp> // replacing
 #include <boost/algorithm/string.hpp> // splitting strings
 #include <cmath> // pierwiastkowanie
-#include "SinsGP.h"
+#include "Data.h"
 
 using namespace std;
 using namespace SinsGP;

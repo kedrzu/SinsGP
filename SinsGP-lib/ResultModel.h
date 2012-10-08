@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Config.h"
 #include "Status.h"
+#include "Result.h"
 
 namespace SinsGP {
 	//! Klasa odpowiada za pojedynczy wynik uczenia.

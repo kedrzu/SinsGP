@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "Config.h"
-#include "DataRow.h"
-#include "Signal.h"
+#include "SinsGP_Signal.h"
 #include "stdafx.h"
 
 namespace SinsGP {

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "SinsGP.h"
+#include "Evolver.h"
 
 using namespace Beagle;
 using namespace SinsGP;
